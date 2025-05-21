@@ -136,7 +136,6 @@ void puts(char *s, ...)
                         unum = ~unum + 1; // 2's complement
                     }
 
-                    s += 1;
                     _putunsignedlong(unum, 10, false);
                     break;
                 }
@@ -219,7 +218,9 @@ static inline char getc(void)
 // Function to getline from user input
 void getlines(char *restrict buffer, size_t length)
 {
-    size_t index = 0;
+    long long index = 0;
+    long long cursor_position = 0;
+
     char character;
     char escape = 0;
     char arrow_keys = 0;
@@ -228,6 +229,62 @@ void getlines(char *restrict buffer, size_t length)
     {
         character = getc();
 
+        // puts("%ld %ld\n", index, cursor_position);
+
+        if (character == 27) // Escape
+        {
+            escape = 1;
+            continue;
+        }
+
+        if (escape)
+        {
+            if (escape == 1)
+            {
+                arrow_keys = (character == 91);
+            }
+            else
+            {
+                // Up - 65 Down - 66 Right - 67 Left - 68
+                if (arrow_keys)
+                {
+                    if (character == 65)
+                    {
+                    }
+                    if (character == 66)
+                    {
+                    }
+                    if (character == 67)
+                    {
+                        if (cursor_position < index)
+                        {
+                            puts("\033[C");
+                            cursor_position++;
+                        }
+                    }
+                    if (character == 68)
+                    {
+                        if (cursor_position - 1 >= 0)
+                        {
+                            puts("\033[D");
+                            cursor_position--;
+                        }
+                    }
+
+                    arrow_keys = 0;
+                }
+            }
+
+            escape++;
+
+            if (escape == 3)
+            {
+                escape = 0;
+            }
+
+            continue;
+        }
+
         if (character == '\r') // Check for carriage return
         {
             break;
@@ -235,18 +292,58 @@ void getlines(char *restrict buffer, size_t length)
         if (character == '\b' || character == 0x7F) // Check for backspace
         {
             // puts("HERE %u\n", index);
-            if (index > 0)
+            if (cursor_position > 0)
             {
+                long long initial_pos = cursor_position;
+
+                for (long long cur = cursor_position - 1; cur < index; cur++)
+                {
+                    buffer[cur] = buffer[cur + 1];
+                }
+
                 index--;
-                putc('\b'); // Move cursor back
-                putc(' ');  // Clear the character
-                putc('\b'); // Move cursor back again
+                buffer[index] = '\0';
+
+                cursor_position--;
+
+                long long cond = (index + 1 != initial_pos);
+
+                if (cond)
+                    puts("\033[%ldC", (index - cursor_position));
+
+                putc('\b');
+                putc(' ');
+                putc('\b');
+
+                if (cond)
+                {
+                    puts("\033[%ldD", index - cursor_position);
+                    puts("%s", buffer + cursor_position);
+                    puts("\033[%ldD", index - cursor_position);
+                }
             }
         }
         else
         {
-            buffer[index++] = character; // Store the character in the buffer
-            putc(character);             // Echo the character back
+            putc(character); // Echo the character back
+
+            long long initial_pos = cursor_position;
+
+            for (long long cur = index; cur >= cursor_position; cur--)
+            {
+                buffer[cur + 1] = buffer[cur];
+            }
+
+            buffer[cursor_position] = character; // Store the character in the buffer
+
+            if (index != initial_pos)
+            {
+                puts(buffer + cursor_position + 1);
+                puts("\033[%ldD", index - initial_pos);
+            }
+
+            cursor_position++;
+            index++;
         }
     }
     buffer[index] = '\0'; // Null-terminate the string
