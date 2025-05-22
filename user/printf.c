@@ -222,16 +222,15 @@ void getlines(char *restrict buffer, size_t length)
     long long cursor_position = 0;
 
     char character;
-    char escape = 0;
-    char arrow_keys = 0;
+
+    uint8_t escape = 0;
+    uint8_t arrow_keys = 0;
 
     while (index < length - 1)
     {
         character = getc();
 
-        // puts("%ld %ld\n", index, cursor_position);
-
-        if (character == 27) // Escape
+        if (character == '\033') // Handle Escape sequences
         {
             escape = 1;
             continue;
@@ -245,30 +244,39 @@ void getlines(char *restrict buffer, size_t length)
             }
             else
             {
-                // Up - 65 Down - 66 Right - 67 Left - 68
                 if (arrow_keys)
                 {
-                    if (character == 65)
+                    switch (character)
                     {
-                    }
-                    if (character == 66)
+                    case 'A': // Up
                     {
+                        break;
                     }
-                    if (character == 67)
+                    case 'B': // Down
+                    {
+                        break;
+                    }
+                    case 'C': // Right
                     {
                         if (cursor_position < index)
                         {
                             puts("\033[C");
                             cursor_position++;
                         }
+                        break;
                     }
-                    if (character == 68)
+                    case 'D': // Left
                     {
                         if (cursor_position - 1 >= 0)
                         {
                             puts("\033[D");
                             cursor_position--;
                         }
+                    }
+                    default:
+                    {
+                        break;
+                    }
                     }
 
                     arrow_keys = 0;
@@ -277,7 +285,7 @@ void getlines(char *restrict buffer, size_t length)
 
             escape++;
 
-            if (escape == 3)
+            if (escape == 3) // Escape sequence is 3 characters long
             {
                 escape = 0;
             }
@@ -291,33 +299,32 @@ void getlines(char *restrict buffer, size_t length)
         }
         if (character == '\b' || character == 0x7F) // Check for backspace
         {
-            // puts("HERE %u\n", index);
             if (cursor_position > 0)
             {
                 long long initial_pos = cursor_position;
 
-                for (long long cur = cursor_position - 1; cur < index; cur++)
+                for (long long cur = cursor_position - 1; cur < index; cur++) // Shift characters to the left
                 {
                     buffer[cur] = buffer[cur + 1];
                 }
+
+                bool cond = (index != initial_pos);
 
                 index--;
                 buffer[index] = '\0';
 
                 cursor_position--;
 
-                long long cond = (index + 1 != initial_pos);
-
                 if (cond)
                     puts("\033[%ldC", (index - cursor_position));
 
-                putc('\b');
-                putc(' ');
-                putc('\b');
+                putc('\b'); // Move cursor back
+                putc(' ');  // Clear the character
+                putc('\b'); // Move cursor back again
 
                 if (cond)
                 {
-                    puts("\033[%ldD", index - cursor_position);
+                    puts("\033[%ldD", index - cursor_position); // Analogous to the above putc sequence, but for multiple characters
                     puts("%s", buffer + cursor_position);
                     puts("\033[%ldD", index - cursor_position);
                 }
@@ -329,7 +336,7 @@ void getlines(char *restrict buffer, size_t length)
 
             long long initial_pos = cursor_position;
 
-            for (long long cur = index; cur >= cursor_position; cur--)
+            for (long long cur = index; cur >= cursor_position; cur--) // Shift characters to the right
             {
                 buffer[cur + 1] = buffer[cur];
             }
