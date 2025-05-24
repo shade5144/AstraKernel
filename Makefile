@@ -51,6 +51,6 @@ clean:
 
 qemu:
 	@echo "Press Ctrl-A then X to exit QEMU"
-	@qemu-system-arm -cpu arm926 -M versatilepb -nographic -kernel $(OUT_DIR)kernel.bin
+	@qemu-system-arm -M versatilepb -nographic -kernel $(OUT_DIR)kernel.bin
 
 .PHONY: all clean qemu

@@ -1,8 +1,9 @@
 #include <stdbool.h>
+#include <stddef.h>
 
+#include "datetime.h"
 #include "printf.h"
 #include "clear.h"
-#include "datetime.h"
 
 static const char *banner[] = {
     "========================================\r\n",
@@ -22,7 +23,7 @@ static void init_message(void)
 {
     for (size_t i = 0; i < sizeof(banner) / sizeof(banner[0]); ++i)
     {
-        puts(banner[i]);
+        printf(banner[i]);
     }
 }
 
@@ -32,53 +33,56 @@ void kernel_main(void)
     clear();
 
     init_message();
-    puts("AstraKernel is running...\r\n");
-    puts("Press Ctrl-A and then X to exit QEMU.\r\n");
-    puts("\r\n");
+    printf("AstraKernel is running...\r\n");
+    printf("Press Ctrl-A and then X to exit QEMU.\r\n");
+    printf("\r\n");
 
     char input_buffer[100];
 
-    timeval time_struct;
     dateval date_struct;
+    timeval time_struct;
 
     bool is_running = true;
     while (is_running)
     {
         input_buffer[0] = '\0'; // Clear the input buffer
-        puts("AstraKernel > ");
+        printf("AstraKernel > ");
         getlines(input_buffer, sizeof(input_buffer));
 
-        puts("\r\n");
+        printf("\r\n");
 
         switch (input_buffer[0])
         {
         case 'h': // Check for help command
-            puts("\nHelp:\n 'q' to exit\n 'h' for help\n 'c' to clear screen\n 't' to print current time\n 'd' to print current date\r\n");
+            printf("\nHelp:\n 'q' to exit\n 'h' for help\n 'c' to clear screen\n 't' to print current time\n 'd' to print current date\r\n");
             break;
-        case 'e':
-            puts("%lx %ld %ld\n", 18446744073709551615, -9223372036854775809, 9223372036854775809);
-            puts("%d %d\n", 2147483647, -2147483647);
-            puts("%x %x %X %X\n", 2147483647, 1234, 2147483647, 1234);
-            puts("%lX %x %lx\n", 0x123456789abcdef0, 1234, 9223372036854775809);
-            puts("Name: %c\n", 'b');
+        case 'e': // TODO: This is for testing purposes. Remove once not needed
+            printf("%ld %ld %ld\n", 0, -9223372036854775808, 9223372036854775807);
+            printf("%d %d\n", 2147483647, -2147483648);
+            printf("%x %lx %lX %X\n", 2147483647, 2147483649, 2147483648, 1234);
+            printf("%lX %x %lx\n", 0x123456789abcdef0, 1234, 9223372036854775809);
+            printf("Name: %c\n", 'b');
+            printf("Hello %s\n", "World");
+            printf("100%%\n");
             break;
         case 'q': // Check for exit command
-            puts("Exiting...\r\n");
+            printf("Exiting...\r\n");
             is_running = false;
             break;
         case 'c': // Check for clear screen command
             clear();
             break;
+
         case 't': // Check for time command
             gettime(&time_struct);
-            puts("Current time(UTC): %d:%d:%d\n", time_struct.hrs, time_struct.mins, time_struct.secs);
+            printf("Current time(GMT): %d:%d:%d\n", time_struct.hrs, time_struct.mins, time_struct.secs);
             break;
         case 'd': // Check for date command
             getdate(&date_struct);
-            puts("Current date(MM-DD-YYYY): %d-%d-%d\n", date_struct.month, date_struct.day, date_struct.year);
+            printf("Current date(MM-DD-YYYY): %d-%d-%d\n", date_struct.month, date_struct.day, date_struct.year);
             break;
         default:
-            puts("Unknown command. Type 'h' for help.\r\n");
+            printf("Unknown command. Type 'h' for help.\r\n");
             break;
         }
     }
