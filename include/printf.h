@@ -10,10 +10,16 @@ extern "C"
 {
 #endif
 
-    void putc(char c);
+    typedef struct Format_State
+    {
+        unsigned long long num;
+        bool valid_format;
+        bool in_format;   // Used to handle multi-character format specifiers
+        bool long_format; // %l. type specifier
+    } Format_State;
+
     void puts(const char *s);
     void printf(char *s, ...);
-    char getc(void);
     void getlines(char *restrict buffer, size_t length);
 
 #ifdef __cplusplus

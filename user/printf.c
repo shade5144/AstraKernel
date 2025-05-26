@@ -1,17 +1,10 @@
+#include "printf.h"
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdarg.h>
 #include <stddef.h>
 
 // TODO: Check working of printf, all cases
-
-typedef struct Format_State
-{
-    unsigned long long num;
-    bool valid_format;
-    bool in_format;   // Used to handle multi-character format specifiers
-    bool long_format; // %l. type specifier
-} Format_State;
 
 _Static_assert(sizeof(uint32_t) == 4, "uint32_t must be 4 bytes");
 
@@ -228,7 +221,7 @@ void printf(char *s, ...)
                 }
                 else
                 {
-                    // Invalid format error handling goes here
+                    // TODO: Implement invalid format error handling here
                 }
 
                 break;
